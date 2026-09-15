@@ -83,6 +83,7 @@ defmodule SlugBoardWeb.BoardLive do
     slug = socket.assigns.slug
 
     Phoenix.PubSub.subscribe(SlugBoard.PubSub, "board:#{slug}")
+    Phoenix.PubSub.subscribe(SlugBoard.PubSub, "presence:board:#{slug}")
 
     {:ok, _} =
       Presence.track(self(), "presence:board:#{slug}", socket.id, %{

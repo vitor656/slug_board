@@ -17,7 +17,7 @@ defmodule SlugBoardWeb.Router do
   scope "/", SlugBoardWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", HomeLive
     live "/board/:slug", BoardLive
   end
 
