@@ -182,14 +182,50 @@ defmodule SlugBoardWeb.BoardLive do
             <span class="font-mono text-sm font-medium">{@slug}</span>
           </div>
           
-          <div class="flex items-center -space-x-2">
-            <div
-              :for={viewer <- @viewers}
-              class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card font-display text-xs font-semibold text-white"
-              style={"background-color: #{avatar_color(viewer)}"}
-              title={viewer}
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              id="theme-toggle"
+              phx-hook="ThemeToggle"
+              class="rounded-md border border-line p-2 text-ink/70 transition hover:text-ink"
+              aria-label="Toggle dark mode"
             >
-              {initials(viewer)}
+              <svg
+                class="block h-4 w-4 dark:hidden"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.02 0l-.7.7M6.34 17.66l-.7.7M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+              <svg
+                class="hidden h-4 w-4 dark:block"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
+            </button>
+            <div class="flex items-center -space-x-2">
+              <div
+                :for={viewer <- @viewers}
+                class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card font-display text-xs font-semibold text-white"
+                style={"background-color: #{avatar_color(viewer)}"}
+                title={viewer}
+              >
+                {initials(viewer)}
+              </div>
             </div>
           </div>
         </header>
@@ -252,7 +288,7 @@ defmodule SlugBoardWeb.BoardLive do
         </main>
       </div>
       
-      <div :if={@modal} class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+      <div :if={@modal} class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
         <div class="w-full max-w-md rounded-lg bg-card p-5 shadow-lg" phx-click-away="close_modal">
           <%= case @modal do %>
             <% {:new_card, column_id} -> %>

@@ -77,6 +77,15 @@ Hooks.DropZone = {
   }
 }
 
+Hooks.ThemeToggle = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark")
+      localStorage.setItem("theme", isDark ? "dark" : "light")
+    })
+  }
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
