@@ -34,30 +34,43 @@ Hooks.Draggable = {
     this.el.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", this.el.dataset.cardId)
       e.dataTransfer.effectAllowed = "move"
-      this.el.classList.add("opacity-50")
+      requestAnimationFrame(() => this.el.classList.add("dragging"))
     })
 
     this.el.addEventListener("dragend", () => {
-      this.el.classList.remove("opacity-50")
+      this.el.classList.remove("dragging")
     })
   }
 }
 
+
 Hooks.DropZone = {
   mounted() {
+    this.dragCounter = 0
+
+    this.el.addEventListener("dragenter", (e) => {
+      e.preventDefault()
+      this.dragCounter++
+      this.el.classList.add("drop-target")
+    })
+
     this.el.addEventListener("dragover", (e) => {
       e.preventDefault()
       e.dataTransfer.dropEffect = "move"
-      this.el.classList.add("bg-moss-light")
     })
 
     this.el.addEventListener("dragleave", () => {
-      this.el.classList.remove("bg-moss-light")
+      this.dragCounter--
+      if (this.dragCounter <= 0) {
+        this.dragCounter = 0
+        this.el.classList.remove("drop-target")
+      }
     })
 
     this.el.addEventListener("drop", (e) => {
       e.preventDefault()
-      this.el.classList.remove("bg-moss-light")
+      this.dragCounter = 0
+      this.el.classList.remove("drop-target")
       const cardId = e.dataTransfer.getData("text/plain")
       this.pushEvent("move_card", {card_id: cardId, column_id: this.el.dataset.columnId})
     })

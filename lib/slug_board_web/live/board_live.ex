@@ -98,6 +98,27 @@ defmodule SlugBoardWeb.BoardLive do
   end
 
   @impl true
+  def handle_event("open_edit_column", %{"column-id" => column_id}, socket) do
+    column = Enum.find(socket.assigns.board.columns, &(&1.id == column_id))
+    {:noreply, assign(socket, :modal, {:edit_column, column})}
+  end
+
+  @impl true
+  def handle_event("update_column", %{"column_id" => column_id, "title" => title}, socket) do
+    if String.trim(title) != "" do
+      BoardServer.update_column(socket.assigns.slug, column_id, title)
+    end
+
+    {:noreply, assign(socket, :modal, nil)}
+  end
+
+  @impl true
+  def handle_event("delete_column", %{"column-id" => column_id}, socket) do
+    BoardServer.delete_column(socket.assigns.slug, column_id)
+    {:noreply, assign(socket, :modal, nil)}
+  end
+
+  @impl true
   def handle_info({:board_updated, new_board}, socket) do
     {:noreply, assign(socket, :board, new_board)}
   end
@@ -178,13 +199,19 @@ defmodule SlugBoardWeb.BoardLive do
             :for={column <- @board.columns}
             class="flex w-[85vw] max-w-xs shrink-0 snap-start flex-col gap-3 sm:w-72"
           >
-            <h2 class="font-display font-semibold text-ink">{column.title}</h2>
-            
+            <button
+              type="button"
+              phx-click="open_edit_column"
+              phx-value-column-id={column.id}
+              class="text-left font-display font-semibold text-ink hover:text-moss"
+            >
+              {column.title}
+            </button>
             <div
               id={"column-#{column.id}"}
               phx-hook="DropZone"
               data-column-id={column.id}
-              class="flex min-h-[80px] flex-col gap-2 rounded-md transition-colors"
+              class="flex min-h-[80px] flex-col gap-2 rounded-md transition-all duration-150"
             >
               <div
                 :for={card <- Enum.filter(@board.cards, &(&1.column_id == column.id))}
@@ -274,6 +301,45 @@ defmodule SlugBoardWeb.BoardLive do
                     class="text-sm text-red-600 hover:text-red-700"
                   >
                     Delete
+                  </button>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      phx-click="close_modal"
+                      class="rounded-md px-3 py-1.5 text-sm text-ink/60 hover:text-ink"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      class="rounded-md bg-moss px-3 py-1.5 font-display text-sm font-medium text-white hover:bg-moss/90"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </form>
+            <% {:edit_column, column} -> %>
+              <h3 class="mb-3 font-display font-semibold">Edit column</h3>
+              
+              <form phx-submit="update_column">
+                <input type="hidden" name="column_id" value={column.id} />
+                <input
+                  type="text"
+                  name="title"
+                  value={column.title}
+                  autofocus
+                  class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-moss"
+                />
+                <div class="mt-3 flex items-center justify-between">
+                  <button
+                    type="button"
+                    phx-click="delete_column"
+                    phx-value-column-id={column.id}
+                    data-confirm="Delete this column and all its cards? This can't be undone."
+                    class="text-sm text-red-600 hover:text-red-700"
+                  >
+                    Delete column
                   </button>
                   <div class="flex gap-2">
                     <button

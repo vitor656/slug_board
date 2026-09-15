@@ -29,6 +29,14 @@ defmodule SlugBoard.BoardServer do
     GenServer.call(via_tuple(slug), {:delete_card, card_id})
   end
 
+  def update_column(slug, column_id, title) do
+    GenServer.call(via_tuple(slug), {:update_column, column_id, title})
+  end
+
+  def delete_column(slug, column_id) do
+    GenServer.call(via_tuple(slug), {:delete_column, column_id})
+  end
+
   defp via_tuple(slug) do
     {:via, Registry, {SlugBoard.BoardRegistry, slug}}
   end
@@ -51,7 +59,7 @@ defmodule SlugBoard.BoardServer do
             columns: [
               %{id: "todo", title: "To Do"},
               %{id: "doing", title: "In Progress"},
-              %{id: "done", title: "Done"},
+              %{id: "done", title: "Done"}
             ],
             cards: []
           }
@@ -107,7 +115,30 @@ defmodule SlugBoard.BoardServer do
       Enum.map(state.cards, fn card ->
         if card.id == card_id, do: %{card | text: text}, else: card
       end)
+
     new_state = %{state | cards: new_cards}
+    broadcast_update(state.slug, new_state)
+    {:reply, new_state, new_state}
+  end
+
+  @impl true
+  def handle_call({:update_column, column_id, title}, _from, state) do
+    new_columns =
+      Enum.map(state.columns, fn column ->
+        if column.id == column_id, do: %{column | title: title}, else: column
+      end)
+
+    new_state = %{state | columns: new_columns}
+    broadcast_update(state.slug, new_state)
+    {:reply, new_state, new_state}
+  end
+
+  @impl true
+  def handle_call({:delete_column, column_id}, _from, state) do
+    new_columns = Enum.reject(state.columns, &(&1.id == column_id))
+    new_cards = Enum.reject(state.cards, &(&1.column_id == column_id))
+
+    new_state = %{state | columns: new_columns, cards: new_cards}
     broadcast_update(state.slug, new_state)
     {:reply, new_state, new_state}
   end
